@@ -1,55 +1,60 @@
 package it.quix.pittini.checker.producer;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import lombok.extern.slf4j.Slf4j;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.apachecommons.CommonsLog;
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.core.statement.SqlLogger;
 import org.jdbi.v3.core.statement.StatementContext;
-import org.jdbi.v3.sqlobject.SqlObjectPlugin;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
 import java.time.temporal.ChronoUnit;
 
-@Slf4j
-@ApplicationScoped
+@CommonsLog
+@Component(value = "jdbiGeoProducer")
+@Getter
+@Setter
 public class JdbiProducer {
-    public Jdbi getJdbi(DataSource dataSource) {
 
-        //Jdbi jdbi = Jdbi.create(dataSource);
-        Jdbi jdbi = Jdbi.create(dataSource).installPlugin(new SqlObjectPlugin());
+    protected Jdbi jdbi;
 
-        configureJdbi(jdbi);
+    private DataSource geoDataSource;
 
-        return jdbi;
+    @Autowired
+    public void JdbiGeoProducer(@Qualifier("pittini")  DataSource dataSource) {
+        geoDataSource = dataSource;
+        init();
     }
 
-    /**
-     *
-     * @param jdbi
-     */
-    private void configureJdbi(Jdbi jdbi) {
-        jdbi.setSqlLogger(new SqlLogger() {
+    public void init() {
+        jdbi = Jdbi.create(geoDataSource);
+        SqlLogger myLogger = new SqlLogger() {
 
             @Override
             public void logBeforeExecution(StatementContext context) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Execute query: " + context.getRenderedSql());
-                    log.debug(context.getBinding().toString());
-                }
+                log.debug("Execute query: \n\n" + context.getRenderedSql());
+                log.debug(context.getBinding());
             }
 
             @Override
             public void logAfterExecution(StatementContext context) {
                 if (log.isDebugEnabled()) {
-                    log.debug("Query time: " + context.getElapsedTime(ChronoUnit.MILLIS) + " ms.");
+                    log.debug("Query time: " + context.getElapsedTime(ChronoUnit.MILLIS) + " ms.\n");
                 }
+
             }
 
             @Override
             public void logException(StatementContext context, SQLException ex) {
-                log.error("Error on execute query " + context.getRenderedSql() + " Error:", ex);
+                log.error("Error on execute query \n " + context.getRenderedSql() + "\n\n Error:", ex);
+
             }
-        });
+        };
+        jdbi.setSqlLogger(myLogger);
     }
+
 }
