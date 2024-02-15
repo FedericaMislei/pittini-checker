@@ -9,6 +9,7 @@ import it.quix.pittini.checker.dao.SqlServerDAO;
 import it.quix.pittini.checker.dto.*;
 import it.quix.pittini.checker.model.Elaborazione;
 import jakarta.inject.Inject;
+import jakarta.transaction.SystemException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.config.RequestConfig;
@@ -302,10 +303,12 @@ public class Check {
         }
     }
 
-    private ControlloDTO elabJob(String rest, String code, RestConfig restConfig) {
+    private ControlloDTO elabJob(String rest, String code, RestConfig restConfig) throws SystemException {
         ControlloDTO c=new ControlloDTO();
-
-
+        if(code.equals("downloadIndiciEEX")){
+            Boolean er=sqlServerDAO.getError(code);
+        }
+/*
         c.setControllo1(restConfig.name()+" ultima esecuzione");
         c.setValue1(ultimaEsecuzione.toString());
         c.setValue2("minuti preffissati"+ restConfig.minute());
@@ -318,7 +321,7 @@ public class Check {
             c.setIstruzioni1("");
         }
 
-
+*/
         return c;
     }
     private String [] toArray(Collection<String> to) {

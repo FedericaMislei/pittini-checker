@@ -100,4 +100,56 @@ public class SqlServerDAO {
     }
 
 
+    public Boolean getError(String code) throws SystemException {
+        Connection connection = null;
+        PreparedStatement statement = null;
+        ResultSet rs = null;
+        try {
+            // Compose the select query
+            StringBuilder query = new StringBuilder();
+            query.append("SELECT js.dataInserimento, js.dataInizio, js.utenteInserimento, js.dataUltimoAggiornamento,\" +\n" +
+                    "                \"CONCAT(js.entita, ' (', js.nome, ')') as nomeJob, a.descrizione, js.filePath, js.codiceProgressivo, js.periodoId, js.priorita, js.stato, p.meseDescrizione + ' ' + p.annoDescrizione as per \" +\n" +
+                    "                \"FROM JOBS_QUEUE js \" +\n" +
+                    "                \"left join albero a ON a.alberoId = js.alberoId \" +\n" +
+                    "                \"left join periodo p ON p.periodoId = js.periodoId \" +\n" +
+                    "                \"where 1 = 1 \" +\n" +
+                    "                \"AND js.stato='RUNNING' \" +\n" +
+                    "                \"order by CASE WHEN js.stato = 'RUNNING' THEN 1 WHEN js.stato = 'STARTED' THEN 2 ELSE 3 END, js.priorita DESC, js.dataInserimento, js.nome, a.descrizione, p.periodoId DESC ").append(EOL);
+
+
+
+            // Get connection
+            connection = getConnection();
+            // Prepare the statement
+            statement = connection.prepareStatement(query.toString(), ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            // Set the parameters
+
+            // Execute the query
+            long startTime = System.currentTimeMillis();
+            rs = statement.executeQuery();
+            long endTime = System.currentTimeMillis();
+            long queryRunningTime = endTime - startTime;
+/*
+            while (rs.next()) {
+                Elaborazione elaborazione = buildModelFromResultSet(rs);
+                list.add(elaborazione);
+
+            }
+            return list;
+
+ */
+        } catch (SQLException ex) {
+            String msg = "Unexpeted error on find elaborazioni  on database.";
+            if (log.isErrorEnabled()) {
+                log.error(msg, ex);
+            }
+            throw new SystemException();
+        } finally {
+            JdbcUtils.closeResultSet(rs);
+            closeStatement(statement);
+            closeConnection(connection);
+        }
+        return null;
+    }
+
 }
