@@ -1,7 +1,6 @@
 package it.quix.pittini.checker.dao;
 
 
-import co.elastic.clients.util.DateTime;
 import it.quix.pittini.checker.model.Elaborazione;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.SystemException;

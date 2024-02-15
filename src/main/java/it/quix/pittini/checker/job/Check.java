@@ -64,10 +64,10 @@ public class Check {
     //DA SPEDIRE PIù VOLTE AL GIORNO: ORARIO DA CONCORDARE
     @Scheduled(cron = "0 0/3 * ? * * *", concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
     public void start() throws Exception {
-        //primo controllo da mettere in prod
         send("federica.mislei@quix.it",tipo1);
         send("federica.mislei@quix.it",tipo2);
         send("federica.mislei@quix.it",tipo6);
+        send("federica.mislei@quix.it",tipo7);
         for(ControlloDTO d:lista){
             if(d.getErrore()){
                 errore=true;
@@ -78,6 +78,26 @@ public class Check {
         inviaEmail(email,lista,errore.toString(),"federica.mislei@quix.it");
         lista.clear();
     }
+
+    //DA SPEDIRE 1 VOLTA AL GIORNO: ORARIO DA CONCORDARE
+    @Scheduled(cron = "0 0/3 * ? * * *", concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
+    public void start1() throws Exception {
+
+        send("federica.mislei@quix.it",tipo3);
+        send("federica.mislei@quix.it",tipo4);
+        send("federica.mislei@quix.it",tipo5);
+        for(ControlloDTO d:lista){
+            if(d.getErrore()){
+                errore=true;
+                break;
+            }
+        }
+        log.debug("errore: "+errore);
+        inviaEmail(email,lista,errore.toString(),"federica.mislei@quix.it");
+        lista.clear();
+    }
+
+
 
     private void send(String email, String tipocontrollo) throws Exception {
         if(tipocontrollo.equals("Elaborazioni in corso")){
@@ -112,7 +132,12 @@ public class Check {
             }
             //inviaEmail(email,lista,c.getErrore().toString(),"haoran.chen@quix.it");
         }else if(tipocontrollo.equals("Import fonti indici")){
-
+            for(String code: globals.rest().keySet()){
+                if(globals.rest().get(code).type().equals("job")) {
+                    ControlloDTO c = elabJob("REST", code, globals.rest().get(code));
+                    lista.add(c);
+                }
+            }
 
         } else if (tipocontrollo.equals("Import sentinel")){
 
@@ -279,10 +304,8 @@ public class Check {
 
     private ControlloDTO elabJob(String rest, String code, RestConfig restConfig) {
         ControlloDTO c=new ControlloDTO();
-        /*
-        LocalDateTime ultimaEsecuzione=jobDAO.getUltimaEsec(code);
-        int olderthan=Integer.parseInt(restConfig.minute());
-        LocalDateTime today=LocalDateTime.now().minusMinutes(olderthan);
+
+
         c.setControllo1(restConfig.name()+" ultima esecuzione");
         c.setValue1(ultimaEsecuzione.toString());
         c.setValue2("minuti preffissati"+ restConfig.minute());
@@ -295,7 +318,7 @@ public class Check {
             c.setIstruzioni1("");
         }
 
-         */
+
         return c;
     }
     private String [] toArray(Collection<String> to) {
