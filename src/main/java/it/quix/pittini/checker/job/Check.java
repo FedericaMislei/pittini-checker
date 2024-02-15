@@ -279,6 +279,7 @@ public class Check {
 
     private ControlloDTO elabJob(String rest, String code, RestConfig restConfig) {
         ControlloDTO c=new ControlloDTO();
+        /*
         LocalDateTime ultimaEsecuzione=jobDAO.getUltimaEsec(code);
         int olderthan=Integer.parseInt(restConfig.minute());
         LocalDateTime today=LocalDateTime.now().minusMinutes(olderthan);
@@ -293,6 +294,8 @@ public class Check {
             c.setErrore(false);
             c.setIstruzioni1("");
         }
+
+         */
         return c;
     }
     private String [] toArray(Collection<String> to) {

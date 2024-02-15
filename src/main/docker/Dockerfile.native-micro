@@ -10,11 +10,11 @@
 #
 # Then, build the image with:
 #
-# docker build -f src/main/docker/Dockerfile.native-micro -t quarkus/pittini-checker .
+# docker build -f src/main/docker/Dockerfile.native-micro -t quarkus/italcer-check .
 #
 # Then run the container using:
 #
-# docker run -i --rm -p 8080:8080 quarkus/pittini-checker
+# docker run -i --rm -p 8080:8080 quarkus/italcer-check
 #
 ###
 FROM quay.io/quarkus/quarkus-micro-image:2.0

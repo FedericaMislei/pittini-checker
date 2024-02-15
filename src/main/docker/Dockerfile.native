@@ -7,14 +7,14 @@
 #
 # Then, build the image with:
 #
-# docker build -f src/main/docker/Dockerfile.native -t quarkus/pittini-checker .
+# docker build -f src/main/docker/Dockerfile.native -t quarkus/italcer-check .
 #
 # Then run the container using:
 #
-# docker run -i --rm -p 8080:8080 quarkus/pittini-checker
+# docker run -i --rm -p 8080:8080 quarkus/italcer-check
 #
 ###
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.9
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.8
 WORKDIR /work/
 RUN chown 1001 /work \
     && chmod "g+rwX" /work \
