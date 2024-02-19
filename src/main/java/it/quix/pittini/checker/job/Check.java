@@ -81,7 +81,7 @@ public class Check {
     }
 
     //DA SPEDIRE 1 VOLTA AL GIORNO: ORARIO DA CONCORDARE
-    @Scheduled(cron = "0 0/3 * ? * * *", concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
+    //@Scheduled(cron = "0 0/3 * ? * * *", concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
     public void start1() throws Exception {
 
         send("federica.mislei@quix.it",tipo3);
