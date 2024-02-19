@@ -26,7 +26,9 @@ import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 
 
@@ -141,8 +143,19 @@ public class Check {
             }
 
         } else if (tipocontrollo.equals("Import sentinel")){
-
+            for(String code: globals.rest().keySet()){
+                if(globals.rest().get(code).type().equals("job")) {
+                    ControlloDTO c = elabJob("REST", code, globals.rest().get(code));
+                    lista.add(c);
+                }
+            }
         } else if (tipocontrollo.equals("Import dati produzione")) {
+            for(String code: globals.rest().keySet()){
+                if(globals.rest().get(code).type().equals("job")) {
+                    ControlloDTO c = elabJob("REST", code, globals.rest().get(code));
+                    lista.add(c);
+                }
+            }
             
         }else if (tipocontrollo.equals("Elastic qdoc2")){
             for(String code: globals.rest().keySet()){
@@ -305,23 +318,63 @@ public class Check {
 
     private ControlloDTO elabJob(String rest, String code, RestConfig restConfig) throws SystemException {
         ControlloDTO c=new ControlloDTO();
+        LocalDateTime oggi= LocalDate.now().atStartOfDay();
+        LocalDateTime fineOggi=LocalDate.now().atTime(23,59,59,999);
         if(code.equals("downloadIndiciEEX")){
-            Boolean er=sqlServerDAO.getError(code);
+            Boolean er=sqlServerDAO.getError(code.substring(14,3),oggi,fineOggi);
+            if(er){
+                c.setControllo1(restConfig.name()+" ultima esecuzione andata in errore");
+                String erroreEsecuzione=sqlServerDAO.getErrore(code.substring(14,3),oggi,fineOggi);
+                c.setValue1(erroreEsecuzione);
+                c.setValue2("");
+                c.setErrore(true);
+                c.setIstruzioni1("Controllare"+ restConfig.name());
+            }
         }
-/*
-        c.setControllo1(restConfig.name()+" ultima esecuzione");
-        c.setValue1(ultimaEsecuzione.toString());
-        c.setValue2("minuti preffissati"+ restConfig.minute());
-        //controllo se la data di ultima eseuzione è più vecchia dei minuti indicati se si errore=true, istruzione=riavviare il job
-        if(ultimaEsecuzione.isBefore(today)){
-            c.setErrore(true);
-            c.setIstruzioni1("Riavviare il job"+ restConfig.name());
-        }else{
-            c.setErrore(false);
-            c.setIstruzioni1("");
+        if(code.equals("downloadIndiciGME")){
+            Boolean er=sqlServerDAO.getError(code.substring(14,3),oggi,fineOggi);
+            if(er){
+                c.setControllo1(restConfig.name()+" ultima esecuzione andata in errore");
+                String erroreEsecuzione=sqlServerDAO.getErrore(code.substring(14,3),oggi,fineOggi);
+                c.setValue1(erroreEsecuzione);
+                c.setValue2("");
+                c.setErrore(true);
+                c.setIstruzioni1("Controllare"+ restConfig.name());
+            }
         }
-
-*/
+        if(code.equals("downloadIndiciICIS-API")){
+            Boolean er=sqlServerDAO.getError(code.substring(14,8).replace("-"," "),oggi,fineOggi);
+            if(er){
+                c.setControllo1(restConfig.name()+" ultima esecuzione andata in errore");
+                String erroreEsecuzione=sqlServerDAO.getErrore(code.substring(14,3),oggi,fineOggi);
+                c.setValue1(erroreEsecuzione);
+                c.setValue2("");
+                c.setErrore(true);
+                c.setIstruzioni1("Controllare"+ restConfig.name());
+            }
+        }
+        if(code.equals("importSentinel")){
+            Boolean er=sqlServerDAO.getError(code.substring(6,code.length()),oggi,fineOggi);
+            if(er){
+                c.setControllo1(restConfig.name()+" ultima esecuzione andata in errore");
+                String erroreEsecuzione=sqlServerDAO.getErrore(code.substring(6,code.length()),oggi,fineOggi);
+                c.setValue1(erroreEsecuzione);
+                c.setValue2("");
+                c.setErrore(true);
+                c.setIstruzioni1("Controllare"+ restConfig.name());
+            }
+        }
+        if(code.equals("importProduzione")){
+            Boolean er=sqlServerDAO.getError(code.substring(6,code.length()),oggi,fineOggi);
+            if(er){
+                c.setControllo1(restConfig.name()+" ultima esecuzione andata in errore");
+                String erroreEsecuzione=sqlServerDAO.getErrore(code.substring(6,code.length()),oggi,fineOggi);
+                c.setValue1(erroreEsecuzione);
+                c.setValue2("");
+                c.setErrore(true);
+                c.setIstruzioni1("Controllare"+ restConfig.name());
+            }
+        }
         return c;
     }
     private String [] toArray(Collection<String> to) {
