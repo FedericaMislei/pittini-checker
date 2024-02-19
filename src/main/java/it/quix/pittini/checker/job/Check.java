@@ -365,9 +365,11 @@ public class Check {
             }
         }
         if(code.equals("importProduzione")){
-            Boolean er=sqlServerDAO.getError(code.substring(6,code.length()),oggi,fineOggi);
-            if(er){
-                c.setControllo1(restConfig.name()+" ultima esecuzione andata in errore");
+            LocalDateTime ultimaEsecuzione=sqlServerDAO.getUltimaEsecuzione();
+            c.setControllo1(restConfig.name()+" ultima esecuzione");
+            if(ultimaEsecuzione.isBefore(fineOggi) && ultimaEsecuzione.isAfter(oggi)){
+                c.setErrore(false);
+            }else{
                 String erroreEsecuzione=sqlServerDAO.getErrore(code.substring(6,code.length()),oggi,fineOggi);
                 c.setValue1(erroreEsecuzione);
                 c.setValue2("");

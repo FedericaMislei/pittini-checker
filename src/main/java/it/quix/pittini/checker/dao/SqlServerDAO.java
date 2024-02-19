@@ -70,4 +70,14 @@ public class SqlServerDAO {
         });
     }
 
+    public LocalDateTime getUltimaEsecuzione() {
+        String query="select ultimaEsecuzione " +
+                "from JOBS_SCHEDULAZIONE  " +
+                "where nome like '%produzione%'";
+        Jdbi jdbi=jdbiProducer.getJdbi(sqlserver);
+        return jdbi.withHandle(handle -> {
+            Query q=handle.createQuery(query);
+            return q.mapTo(LocalDateTime.class).one();
+        });
+    }
 }
