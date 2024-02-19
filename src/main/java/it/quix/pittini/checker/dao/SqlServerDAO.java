@@ -46,7 +46,7 @@ public class SqlServerDAO {
         });
     }
 
-    public Boolean getError(String code, LocalDateTime oggi,LocalDateTime fineOggi) throws SystemException {
+    public Boolean getError(String code, LocalDateTime oggi,LocalDateTime fineOggi) {
         String query="select case when js.stato = 'ERROR' THEN 1 ELSE 0 END " +
                 "from JOBS_STORICO js " +
                 "inner join JOBS_SCHEDULAZIONE js2 on js2.entita =js.entita and js2.entitaChiave =js.entitaChiave " +
@@ -58,7 +58,7 @@ public class SqlServerDAO {
         });
     }
 
-    public String getErrore(String code, LocalDateTime oggi,LocalDateTime fineOggi) throws SystemException {
+    public String getErrore(String code, LocalDateTime oggi,LocalDateTime fineOggi) {
         String query="select js.errore " +
                 "from JOBS_STORICO js " +
                 "inner join JOBS_SCHEDULAZIONE js2 on js2.entita =js.entita and js2.entitaChiave =js.entitaChiave " +

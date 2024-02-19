@@ -28,7 +28,6 @@ import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.*;
 
 
@@ -67,6 +66,7 @@ public class Check {
     //DA SPEDIRE PIù VOLTE AL GIORNO: ORARIO DA CONCORDARE
     @Scheduled(cron = "0 0/3 * ? * * *", concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
     public void start() throws Exception {
+        log.debug("sono dentro a start");
         send("federica.mislei@quix.it",tipo1);
         send("federica.mislei@quix.it",tipo2);
         send("federica.mislei@quix.it",tipo6);
@@ -85,7 +85,7 @@ public class Check {
     //DA SPEDIRE 1 VOLTA AL GIORNO: ORARIO DA CONCORDARE
     //@Scheduled(cron = "0 0/3 * ? * * *", concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
     public void start1() throws Exception {
-
+        log.debug("sono dentro a start1");
         send("federica.mislei@quix.it",tipo3);
         send("federica.mislei@quix.it",tipo4);
         send("federica.mislei@quix.it",tipo5);
@@ -103,17 +103,23 @@ public class Check {
 
 
     private void send(String email, String tipocontrollo) throws Exception {
+        log.debug("sono dentro a send");
         if(tipocontrollo.equals("Elaborazioni in corso")){
+            log.debug("Controllo elaborazioni in corso");
             List<Elaborazione> vecchie=new ArrayList<>();
             List<Elaborazione> listaElaborazioni=sqlServerDAO.getList();
+            log.debug("listaElaborazioni: ",listaElaborazioni.size());
             LocalDateTime ora=LocalDateTime.now().minusMinutes(30);
+            log.debug("ora: ",ora);
             for(Elaborazione e: listaElaborazioni){
+                log.debug("ultimoAggiornamento: ", e.getUltimoAggiornamento());
                 if(e.getUltimoAggiornamento().isBefore(ora)){
                     vecchie.add(e);
                 }
             }
             ControlloDTO controlloDTO=new ControlloDTO();
-            if(vecchie.size()<=0){
+            log.debug("vecchie: ",vecchie.size());
+            if(vecchie.size() == 0){
                 controlloDTO.setErrore(false);
             }else{
                 controlloDTO.setErrore(true);
@@ -123,10 +129,13 @@ public class Check {
             controlloDTO.setValue2(String.valueOf(ora));
             controlloDTO.setIstruzioni1("Elimina le seguenti elaborazioni");
             for(Elaborazione e: vecchie){
+                log.debug("nome:", e.getNomeJob());
                 controlloDTO.setIstruzioni1(controlloDTO.getIstruzioni1()+ e.getNomeJob());
             }
+            log.debug("controllo:", controlloDTO);
             lista.add(controlloDTO);
         }else if (tipocontrollo.equals("Qery")){
+            log.debug("controllo qery ");
             for(String code: globals.rest().keySet()){
                 if(globals.rest().get(code).type().equals("app")) {
                     ControlloDTO c = elab("REST", code, globals.rest().get(code));
@@ -319,7 +328,9 @@ public class Check {
     private ControlloDTO elabJob(String rest, String code, RestConfig restConfig) throws SystemException {
         ControlloDTO c=new ControlloDTO();
         LocalDateTime oggi= LocalDate.now().atStartOfDay();
+        log.debug("oggi: ",oggi);
         LocalDateTime fineOggi=LocalDate.now().atTime(23,59,59,999);
+        log.debug("fineOggi: ",fineOggi);
         if(code.equals("downloadIndiciEEX")){
             Boolean er=sqlServerDAO.getError(code.substring(14,3),oggi,fineOggi);
             if(er){
