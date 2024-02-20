@@ -31,8 +31,8 @@ public class SqlServerDAO {
 
     public List<Elaborazione> getList() {
         log.debug("dentro getList");
-     String query="SELECT js.dataInserimento, js.dataInizio, js.utenteInserimento, js.dataUltimoAggiornamento,CONCAT(js.entita, ' (', js.nome, ')') as nomeJob,"+
-                  " a.descrizione, js.filePath, js.codiceProgressivo, js.periodoId, js.priorita, js.stato, p.meseDescrizione + ' ' + p.annoDescrizione as per " +
+     String query="SELECT js.queueId,js.dataInserimento, js.dataInizio, js.utenteInserimento, CONCAT(js.entita, ' (', js.nome, ')') as nomeJob,"+
+                  " a.descrizione as descrizione, js.filePath, js.codiceProgressivo, js.periodoId, js.priorita, js.stato, p.meseDescrizione + ' ' + p.annoDescrizione as per,js.dataUltimoAggiornamento as ultimoAggiornamento  " +
                   " FROM JOBS_QUEUE js " +
                   "left join albero a ON a.alberoId = js.alberoId " +
                   "left join periodo p ON p.periodoId = js.periodoId " +

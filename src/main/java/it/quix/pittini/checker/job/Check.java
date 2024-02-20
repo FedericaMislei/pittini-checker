@@ -69,8 +69,8 @@ public class Check {
         log.debug("sono dentro a start");
         send("federica.mislei@quix.it",tipo1);
         send("federica.mislei@quix.it",tipo2);
-        send("federica.mislei@quix.it",tipo6);
-        send("federica.mislei@quix.it",tipo7);
+        //("federica.mislei@quix.it",tipo6);
+        //send("federica.mislei@quix.it",tipo7);
         for(ControlloDTO d:lista){
             if(d.getErrore()){
                 errore=true;
@@ -113,7 +113,7 @@ public class Check {
             log.debug("ora: ",ora);
             for(Elaborazione e: listaElaborazioni){
                 log.debug("ultimoAggiornamento: ", e.getUltimoAggiornamento());
-                if(e.getUltimoAggiornamento().isBefore(ora)){
+                if(e.getUltimoAggiornamento().toString().equals(null) || e.getUltimoAggiornamento().isBefore(ora)){
                     vecchie.add(e);
                 }
             }
@@ -125,19 +125,19 @@ public class Check {
                 controlloDTO.setErrore(true);
             }
             controlloDTO.setControllo1(tipo1);
-            controlloDTO.setValue1(String.valueOf(vecchie.size()));
-            controlloDTO.setValue2(String.valueOf(ora));
-            controlloDTO.setIstruzioni1("Elimina le seguenti elaborazioni");
+            controlloDTO.setValue1("numero elaborazioni vecchie:"+String.valueOf(vecchie.size()));
+            controlloDTO.setValue2("il "+String.valueOf(ora));
+            controlloDTO.setIstruzioni1("Elimina le seguenti elaborazioni : ");
             for(Elaborazione e: vecchie){
                 log.debug("nome:", e.getNomeJob());
-                controlloDTO.setIstruzioni1(controlloDTO.getIstruzioni1()+ e.getNomeJob());
+                controlloDTO.setIstruzioni1("-"+ controlloDTO.getIstruzioni1()+ e.getNomeJob() +"\n");
             }
             log.debug("controllo:", controlloDTO);
             lista.add(controlloDTO);
         }else if (tipocontrollo.equals("Qery")){
             log.debug("controllo qery ");
             for(String code: globals.rest().keySet()){
-                if(globals.rest().get(code).type().equals("app")) {
+                if(globals.rest().get(code).type().equals("app") && code.contains("qery")) {
                     ControlloDTO c = elab("REST", code, globals.rest().get(code));
                     lista.add(c);
                 }
@@ -260,7 +260,7 @@ public class Check {
             vars.put("email", email);
             vars.put("list", list);
             // title
-            InputStream in = this.getClass().getResourceAsStream("/templates/title.ftl");
+            InputStream in = this.getClass().getResourceAsStream("/template/title.ftl");
             String templateStrTitle = new String(in.readAllBytes(), StandardCharsets.UTF_8);
             Template template = new Template("title", new StringReader(templateStrTitle), cfg);
             template.process(vars, wtitle);
@@ -268,7 +268,7 @@ public class Check {
             String object = wtitle.toString();
             log.debug("oggetto:"+object);
             // title
-            InputStream in2 = this.getClass().getResourceAsStream("/templates/body.ftl");
+            InputStream in2 = this.getClass().getResourceAsStream("/template/body.ftl");
             String templateStrBody = new String(in2.readAllBytes(), StandardCharsets.UTF_8);
             template = new Template("body", new StringReader(templateStrBody), cfg);
             template.process(vars, wbody);
