@@ -53,6 +53,38 @@ public class ControlloRest {
         return Response.ok().build();
     }
 
-
+    @Path("InviaEmailJobVolte/start")
+    @GET
+    @APIResponses(value = {
+            @APIResponse(
+                    responseCode = "500",
+                    description = "Errore",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Response.class))),
+            @APIResponse(
+                    responseCode = "403",
+                    description = "Permission error",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Response.class))),
+            @APIResponse(
+                    responseCode = "200",
+                    description = "OK",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Response.class)))})
+    @Operation(summary = "Avvia il Job Invio Email",
+            description = "Avvia il Job Invio Email",
+            operationId = "startJob")
+    public Response startJobVolte() {
+        try {
+            new Thread(() -> {
+                try {
+                    check.start1();
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }).start();
+        }catch (Exception e){
+            log.error("Avvia il Job Invio Email Error");
+            return Response.serverError().build();
+        }
+        return Response.ok().build();
+    }
 
 }

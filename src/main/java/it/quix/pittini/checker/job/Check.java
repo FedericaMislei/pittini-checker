@@ -21,13 +21,12 @@ import org.apache.http.impl.client.HttpClients;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringReader;
-import java.io.StringWriter;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 
 
@@ -61,14 +60,17 @@ public class Check {
     @Inject
     Config globals;
 
+    @ConfigProperty(name = "config.rest.importSentinel.url")
+    String percorsoSentinel;
+
 
 
     //DA SPEDIRE PIù VOLTE AL GIORNO: ORARIO DA CONCORDARE
-    @Scheduled(cron = "0 0/3 * ? * * *", concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
+//    @Scheduled(cron = "0 0/3 * ? * * *", concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
     public void start() throws Exception {
         log.debug("sono dentro a start");
-        send("federica.mislei@quix.it",tipo1);
-        send("federica.mislei@quix.it",tipo2);
+//        send("federica.mislei@quix.it",tipo1);
+//        send("federica.mislei@quix.it",tipo2);
         //("federica.mislei@quix.it",tipo6);
         //send("federica.mislei@quix.it",tipo7);
         for(ControlloDTO d:lista){
@@ -83,7 +85,7 @@ public class Check {
     }
 
     //DA SPEDIRE 1 VOLTA AL GIORNO: ORARIO DA CONCORDARE
-    //@Scheduled(cron = "0 0/3 * ? * * *", concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
+    @Scheduled(cron = "0 0/3 * ? * * *", concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
     public void start1() throws Exception {
         log.debug("sono dentro a start1");
         send("federica.mislei@quix.it",tipo3);
@@ -155,6 +157,41 @@ public class Check {
             for(String code: globals.rest().keySet()){
                 if(globals.rest().get(code).type().equals("job")) {
                     ControlloDTO c = elabJob("REST", code, globals.rest().get(code));
+                    c.setErrore(false);
+                    if(!c.getErrore()){
+                        //controllare se c'è il file nella cartella E:\QData\ftpHome\sentinel_input\input_files
+                        //se non c'è errore
+                        File[] all = new File(percorsoSentinel).listFiles(); //lista di tutto
+                        List<File> directories=new ArrayList<>();
+                        for(File file:all){
+                            if(file.isDirectory()){
+                                directories.add(file);
+                            }
+                        }
+                        log.debug("trovate directory "+ directories.size());
+                        for(File directory : directories){
+                            log.debug("nome directory: "+ directory.getName());
+                            File dir = new File(percorsoSentinel , directory.getName());
+                            List<File> files=new ArrayList<>();
+                            if(Arrays.stream(Objects.requireNonNull(dir.listFiles())).toList().size() == 0){
+                                c.setErrore(true);
+                                c.setIstruzioni1("File non presente");
+                            }
+                            for(File f:dir.listFiles()){
+                                log.debug("file :"+ f.getName());
+                                LocalDateTime domani=LocalDateTime.now().plusDays(1);
+                                log.debug("data di domani: "+ domani);
+                                LocalDateTime lastModified= Instant.ofEpochMilli(f.lastModified()).atZone(ZoneId.systemDefault()).toLocalDateTime();
+                                log.debug("data ultimaModifica: "+ lastModified);
+                                if(lastModified.isBefore(domani)){
+                                    c.setErrore(false);
+                                }else{
+                                    c.setErrore(true);
+                                    c.setIstruzioni1("File non aggiornato");
+                                }
+                            }
+                        }
+                    }
                     lista.add(c);
                 }
             }
