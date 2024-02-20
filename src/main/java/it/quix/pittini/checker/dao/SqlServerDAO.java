@@ -15,6 +15,7 @@ import org.jdbi.v3.core.statement.Query;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 
 @ApplicationScoped
@@ -46,15 +47,15 @@ public class SqlServerDAO {
         });
     }
 
-    public Boolean getError(String code, LocalDateTime oggi,LocalDateTime fineOggi) {
+    public Optional<Boolean> getError(String code, LocalDateTime oggi, LocalDateTime fineOggi) {
         String query="select case when js.stato = 'ERROR' THEN 1 ELSE 0 END " +
                 "from JOBS_STORICO js " +
                 "inner join JOBS_SCHEDULAZIONE js2 on js2.entita =js.entita and js2.entitaChiave =js.entitaChiave " +
-                "where js.stato ='ERROR' and js2.nome like :code AND js.dataInserimento  between :dataOggi and :FineOggi";
+                "where js.stato ='ERROR' and js2.nome like :code AND :dataOggi <= js.dataInserimento and js.dataInserimento <= :fineOggi";
         Jdbi jdbi=jdbiProducer.getJdbi(sqlserver);
         return jdbi.withHandle(handle -> {
-            Query q=handle.createQuery(query).bind("code",code).bind("dataOggi",oggi).bind("FineOggi",fineOggi);
-            return q.mapTo(Boolean.class).one();
+            Query q=handle.createQuery(query).bind("code",code).bind("dataOggi",oggi).bind("fineOggi",fineOggi);
+            return q.mapTo(Boolean.class).findOne();
         });
     }
 
@@ -62,7 +63,7 @@ public class SqlServerDAO {
         String query="select js.errore " +
                 "from JOBS_STORICO js " +
                 "inner join JOBS_SCHEDULAZIONE js2 on js2.entita =js.entita and js2.entitaChiave =js.entitaChiave " +
-                "where js.stato ='ERROR' and js2.nome like :code AND js.dataInserimento between :dataOggi and :dataFineOggi";
+                "where js.stato ='ERROR' and js2.nome like :code AND :dataOggi <= js.dataInserimento and js.dataInserimento <= :fineOggi";
         Jdbi jdbi=jdbiProducer.getJdbi(sqlserver);
         return jdbi.withHandle(handle -> {
             Query q=handle.createQuery(query).bind("code",code).bind("dataOggi",oggi).bind("dataFineOggi",fineOggi);
@@ -71,7 +72,7 @@ public class SqlServerDAO {
     }
 
     public LocalDateTime getUltimaEsecuzione() {
-        String query="select ultimaEsecuzione " +
+        String query="select dataUltimaEsecuzione " +
                 "from JOBS_SCHEDULAZIONE  " +
                 "where nome like '%produzione%'";
         Jdbi jdbi=jdbiProducer.getJdbi(sqlserver);

@@ -70,7 +70,7 @@ public class ControlloRest {
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = Response.class)))})
     @Operation(summary = "Avvia il Job Invio Email",
             description = "Avvia il Job Invio Email",
-            operationId = "startJob")
+            operationId = "startJobVolte")
     public Response startJobVolte() {
         try {
             new Thread(() -> {

@@ -69,9 +69,9 @@ public class Check {
 //    @Scheduled(cron = "0 0/3 * ? * * *", concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
     public void start() throws Exception {
         log.debug("sono dentro a start");
-//        send("federica.mislei@quix.it",tipo1);
-//        send("federica.mislei@quix.it",tipo2);
-        //("federica.mislei@quix.it",tipo6);
+        send("federica.mislei@quix.it",tipo1);
+        send("federica.mislei@quix.it",tipo2);
+        //send("federica.mislei@quix.it",tipo6);
         //send("federica.mislei@quix.it",tipo7);
         for(ControlloDTO d:lista){
             if(d.getErrore()){
@@ -89,8 +89,8 @@ public class Check {
     public void start1() throws Exception {
         log.debug("sono dentro a start1");
         send("federica.mislei@quix.it",tipo3);
-        send("federica.mislei@quix.it",tipo4);
-        send("federica.mislei@quix.it",tipo5);
+//        send("federica.mislei@quix.it",tipo4);
+//        send("federica.mislei@quix.it",tipo5);
         for(ControlloDTO d:lista){
             if(d.getErrore()){
                 errore=true;
@@ -147,7 +147,7 @@ public class Check {
             //inviaEmail(email,lista,c.getErrore().toString(),"haoran.chen@quix.it");
         }else if(tipocontrollo.equals("Import fonti indici")){
             for(String code: globals.rest().keySet()){
-                if(globals.rest().get(code).type().equals("job")) {
+                if(globals.rest().get(code).type().equals("job") && !code.contains("Sentinel")) {
                     ControlloDTO c = elabJob("REST", code, globals.rest().get(code));
                     lista.add(c);
                 }
@@ -155,7 +155,7 @@ public class Check {
 
         } else if (tipocontrollo.equals("Import sentinel")){
             for(String code: globals.rest().keySet()){
-                if(globals.rest().get(code).type().equals("job")) {
+                if(globals.rest().get(code).type().equals("job") && code.contains("Sentinel")) {
                     ControlloDTO c = elabJob("REST", code, globals.rest().get(code));
                     c.setErrore(false);
                     if(!c.getErrore()){
@@ -166,22 +166,11 @@ public class Check {
                         for(File file:all){
                             if(file.isDirectory()){
                                 directories.add(file);
-                            }
-                        }
-                        log.debug("trovate directory "+ directories.size());
-                        for(File directory : directories){
-                            log.debug("nome directory: "+ directory.getName());
-                            File dir = new File(percorsoSentinel , directory.getName());
-                            List<File> files=new ArrayList<>();
-                            if(Arrays.stream(Objects.requireNonNull(dir.listFiles())).toList().size() == 0){
-                                c.setErrore(true);
-                                c.setIstruzioni1("File non presente");
-                            }
-                            for(File f:dir.listFiles()){
-                                log.debug("file :"+ f.getName());
-                                LocalDateTime domani=LocalDateTime.now().plusDays(1);
+                            }else{
+                                log.debug("file :"+ file.getName());
+                                LocalDateTime domani=LocalDateTime.now().plusDays(1).withHour(0).withMinute(0).withSecond(0).withNano(0);
                                 log.debug("data di domani: "+ domani);
-                                LocalDateTime lastModified= Instant.ofEpochMilli(f.lastModified()).atZone(ZoneId.systemDefault()).toLocalDateTime();
+                                LocalDateTime lastModified= Instant.ofEpochMilli(file.lastModified()).atZone(ZoneId.systemDefault()).toLocalDateTime();
                                 log.debug("data ultimaModifica: "+ lastModified);
                                 if(lastModified.isBefore(domani)){
                                     c.setErrore(false);
@@ -364,12 +353,15 @@ public class Check {
 
     private ControlloDTO elabJob(String rest, String code, RestConfig restConfig) throws SystemException {
         ControlloDTO c=new ControlloDTO();
-        LocalDateTime oggi= LocalDate.now().atStartOfDay();
+        LocalDateTime oggi= LocalDate.now().atStartOfDay().withSecond(0).withNano(999);
         log.debug("oggi: ",oggi);
         LocalDateTime fineOggi=LocalDate.now().atTime(23,59,59,999);
         log.debug("fineOggi: ",fineOggi);
         if(code.equals("downloadIndiciEEX")){
-            Boolean er=sqlServerDAO.getError(code.substring(14,3),oggi,fineOggi);
+            Boolean er=false;
+            if(sqlServerDAO.getError(code.substring(14,3),oggi,fineOggi).isPresent()){
+                er=sqlServerDAO.getError(code.substring(14,3),oggi,fineOggi).get();
+            }
             if(er){
                 c.setControllo1(restConfig.name()+" ultima esecuzione andata in errore");
                 String erroreEsecuzione=sqlServerDAO.getErrore(code.substring(14,3),oggi,fineOggi);
@@ -380,10 +372,15 @@ public class Check {
             }
         }
         if(code.equals("downloadIndiciGME")){
-            Boolean er=sqlServerDAO.getError(code.substring(14,3),oggi,fineOggi);
+            Boolean er=false;
+            int lenght=code.length();
+            String nomeIndice=code.substring(14);
+            if(sqlServerDAO.getError(code.substring(14),oggi,fineOggi).isPresent()){
+                er=sqlServerDAO.getError(code.substring(14),oggi,fineOggi).get();
+            }
             if(er){
                 c.setControllo1(restConfig.name()+" ultima esecuzione andata in errore");
-                String erroreEsecuzione=sqlServerDAO.getErrore(code.substring(14,3),oggi,fineOggi);
+                String erroreEsecuzione=sqlServerDAO.getErrore(code.substring(14),oggi,fineOggi);
                 c.setValue1(erroreEsecuzione);
                 c.setValue2("");
                 c.setErrore(true);
@@ -391,10 +388,13 @@ public class Check {
             }
         }
         if(code.equals("downloadIndiciICIS-API")){
-            Boolean er=sqlServerDAO.getError(code.substring(14,8).replace("-"," "),oggi,fineOggi);
+            Boolean er=false;
+            if(sqlServerDAO.getError(code.substring(14).replace("-"," "),oggi,fineOggi).isPresent()){
+                er=sqlServerDAO.getError(code.substring(14).replace("-"," "),oggi,fineOggi).get();
+            }
             if(er){
                 c.setControllo1(restConfig.name()+" ultima esecuzione andata in errore");
-                String erroreEsecuzione=sqlServerDAO.getErrore(code.substring(14,3),oggi,fineOggi);
+                String erroreEsecuzione=sqlServerDAO.getErrore(code.substring(14),oggi,fineOggi);
                 c.setValue1(erroreEsecuzione);
                 c.setValue2("");
                 c.setErrore(true);
@@ -402,10 +402,13 @@ public class Check {
             }
         }
         if(code.equals("importSentinel")){
-            Boolean er=sqlServerDAO.getError(code.substring(6,code.length()),oggi,fineOggi);
+            Boolean er = false;
+            if(sqlServerDAO.getError(code.substring(6),oggi,fineOggi).isPresent()){
+                er=sqlServerDAO.getError(code.substring(6),oggi,fineOggi).get();
+            }
             if(er){
                 c.setControllo1(restConfig.name()+" ultima esecuzione andata in errore");
-                String erroreEsecuzione=sqlServerDAO.getErrore(code.substring(6,code.length()),oggi,fineOggi);
+                String erroreEsecuzione=sqlServerDAO.getErrore(code.substring(6),oggi,fineOggi);
                 c.setValue1(erroreEsecuzione);
                 c.setValue2("");
                 c.setErrore(true);
@@ -418,7 +421,7 @@ public class Check {
             if(ultimaEsecuzione.isBefore(fineOggi) && ultimaEsecuzione.isAfter(oggi)){
                 c.setErrore(false);
             }else{
-                String erroreEsecuzione=sqlServerDAO.getErrore(code.substring(6,code.length()),oggi,fineOggi);
+                String erroreEsecuzione=sqlServerDAO.getErrore(code.substring(6),oggi,fineOggi);
                 c.setValue1(erroreEsecuzione);
                 c.setValue2("");
                 c.setErrore(true);
