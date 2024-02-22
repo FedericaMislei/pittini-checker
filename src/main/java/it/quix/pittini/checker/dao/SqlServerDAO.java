@@ -7,7 +7,6 @@ import it.quix.pittini.checker.model.Elaborazione;
 import it.quix.pittini.checker.producer.JdbiProducer;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.transaction.SystemException;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.jdbi.v3.core.Jdbi;

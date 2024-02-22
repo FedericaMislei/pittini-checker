@@ -92,7 +92,7 @@ public class Check {
 //        send("federica.mislei@quix.it",tipo4);
 //        send("federica.mislei@quix.it",tipo5);
         for(ControlloDTO d:lista){
-            if(d.getErrore()){
+            if(d.getErrore() != null && d.getErrore()){
                 errore=true;
                 break;
             }
@@ -359,15 +359,20 @@ public class Check {
         log.debug("fineOggi: ",fineOggi);
         if(code.equals("downloadIndiciEEX")){
             Boolean er=false;
-            if(sqlServerDAO.getError(code.substring(14,3),oggi,fineOggi).isPresent()){
-                er=sqlServerDAO.getError(code.substring(14,3),oggi,fineOggi).get();
+            if(sqlServerDAO.getError(code.substring(14),oggi,fineOggi).isPresent()){
+                er=sqlServerDAO.getError(code.substring(14),oggi,fineOggi).get();
             }
             if(er){
                 c.setControllo1(restConfig.name()+" ultima esecuzione andata in errore");
-                String erroreEsecuzione=sqlServerDAO.getErrore(code.substring(14,3),oggi,fineOggi);
+                String erroreEsecuzione=sqlServerDAO.getErrore(code.substring(14),oggi,fineOggi);
                 c.setValue1(erroreEsecuzione);
                 c.setValue2("");
                 c.setErrore(true);
+                c.setIstruzioni1("Controllare"+ restConfig.name());
+            }else{
+                c.setValue1("non va in errore");
+                c.setValue2("");
+                c.setErrore(false);
                 c.setIstruzioni1("Controllare"+ restConfig.name());
             }
         }
@@ -384,6 +389,11 @@ public class Check {
                 c.setValue1(erroreEsecuzione);
                 c.setValue2("");
                 c.setErrore(true);
+                c.setIstruzioni1("Controllare"+ restConfig.name());
+            }else{
+                c.setValue1("non va in errore");
+                c.setValue2("");
+                c.setErrore(false);
                 c.setIstruzioni1("Controllare"+ restConfig.name());
             }
         }
@@ -413,6 +423,11 @@ public class Check {
                 c.setValue2("");
                 c.setErrore(true);
                 c.setIstruzioni1("Controllare"+ restConfig.name());
+            }else{
+                c.setValue1("non va in errore");
+                c.setValue2("");
+                c.setErrore(false);
+                c.setIstruzioni1("Controllare"+ restConfig.name());
             }
         }
         if(code.equals("importProduzione")){
@@ -422,6 +437,9 @@ public class Check {
                 c.setErrore(false);
             }else{
                 String erroreEsecuzione=sqlServerDAO.getErrore(code.substring(6),oggi,fineOggi);
+                if(erroreEsecuzione.equals(" ")){
+                    c.setValue1("deve ancora girare il job");
+                }
                 c.setValue1(erroreEsecuzione);
                 c.setValue2("");
                 c.setErrore(true);
